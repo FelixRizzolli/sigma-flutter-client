@@ -29,7 +29,7 @@ class _LessonPageState extends State<LessonPage> {
   void _load() async {
     try {
       _lessons = await _graphQLService.getLessons(lessonCollectionId: '64947fed85956572222a0b76');
-      final dayOfTheYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1, 0, 0)).inDays;
+      final dayOfTheYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1, 0, 0)).inDays + 1;
       _counter = (_lessons.length >= dayOfTheYear) ? dayOfTheYear : 1;
       _day = setDayString();
       _selectedLesson = _lessons.elementAt(_counter - 1);
