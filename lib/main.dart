@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sigma_flutter_client/widgets/lessons/lesson.dart';
+import 'package:sigma_flutter_client/widgets/lessons/lessoncollectionlist.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +32,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LessonPage(title: 'Daily Lesson'),
+      home: 
+        const LessonCollectionListPage(title: 'Lesson Collections'),
+        //const LessonPage(title: 'Daily Lesson'),
     );
   }
 }

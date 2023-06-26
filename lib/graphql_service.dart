@@ -51,6 +51,38 @@ class GraphQLService {
       throw Exception(error);
     }
   }
+  
+  Future<List<LessonCollectionModel>> getLessonCollections() async {
+    try {
+      QueryResult result = await client.query(
+        QueryOptions(
+          fetchPolicy: FetchPolicy.noCache,
+          document: gql("""
+            query GetLessonCollections {
+              getLessonCollections {
+                name,
+                frequency
+              }
+            }
+          """)
+        ),
+      );
 
+      if (result.hasException) {
+        throw Exception(result.exception);
+      } else {
+        List? res = result.data?['getLessonCollections'];
 
+        if (res == null || res.isEmpty) {
+          return [];
+        }
+        
+        return res.map(
+          (lesson) => LessonCollectionModel.fromMap(map: lesson)
+        ).toList();
+      }
+    } catch (error) {
+      throw Exception(error);
+    }
+  }
 }

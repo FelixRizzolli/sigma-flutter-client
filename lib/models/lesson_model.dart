@@ -1,3 +1,19 @@
+class LessonCollectionModel {
+  String name;
+  String frequency;
+
+  LessonCollectionModel({
+    required this.name,
+    required this.frequency
+  });
+
+  static LessonCollectionModel fromMap({ required Map map }) {
+    return LessonCollectionModel(
+      name: map['name'], 
+      frequency: map['frequency']
+    );
+  }
+}
 class LessonModel {
   String title;
   int number;
