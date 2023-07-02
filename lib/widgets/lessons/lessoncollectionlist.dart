@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sigma_flutter_client/graphql_service.dart';
 import 'package:sigma_flutter_client/models/lesson_model.dart';
+import 'package:sigma_flutter_client/widgets/lessons/lesson.dart';
 
 class LessonCollectionListPage extends StatefulWidget {
-  const LessonCollectionListPage({super.key, required this.title});
+  const LessonCollectionListPage({super.key});
 
-  final String title;
+  final String title = 'Lesson Collections';
 
   @override
   State<LessonCollectionListPage> createState() => _LessonCollectionListPageState();
@@ -24,11 +25,13 @@ class _LessonCollectionListPageState extends State<LessonCollectionListPage> {
 
   void _load() async {
     try {
-      _lessonCollections = await _graphQLService.getLessonCollections();
+      var collections = await _graphQLService.getLessonCollections();
+      setState(() {
+        _lessonCollections = collections;
+      });
     } catch (error) {
       _lessonCollections = List.empty();
     }
-    setState(() {});
   }
 
   List<Widget> getList() {
@@ -59,6 +62,21 @@ class _LessonCollectionListPageState extends State<LessonCollectionListPage> {
                       fontSize: 8
                     ),
                   ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      foregroundColor: Colors.white70,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: 
+                          (context) => LessonPage(lessonCollection: lessonColection)
+                        ),
+                      );
+                    }, 
+                    child: const Text('OPEN')
+                  )
                 ], 
               ),
             )

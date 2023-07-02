@@ -3,9 +3,9 @@ import 'package:sigma_flutter_client/graphql_service.dart';
 import 'package:sigma_flutter_client/models/lesson_model.dart';
 
 class LessonPage extends StatefulWidget {
-  const LessonPage({super.key, required this.title});
+  const LessonPage({super.key, required this.lessonCollection});
 
-  final String title;
+  final LessonCollectionModel lessonCollection;
 
   @override
   State<LessonPage> createState() => _LessonPageState();
@@ -14,42 +14,40 @@ class LessonPage extends StatefulWidget {
 
 class _LessonPageState extends State<LessonPage> {
   final GraphQLService _graphQLService = GraphQLService();
-  List<LessonModel> _lessons = List.empty();
+  LessonModel _lesson = LessonModel(title: ' ', lessonNumber: 0, content: List.empty());
   
   int _counter = 1;
   String _day = ' ';
-  LessonModel _selectedLesson = LessonModel(title: '', number: 0, content: List.empty());
+  late LessonModel _selectedLesson;
 
   @override
   void initState() {
     super.initState();
+    final dayOfTheYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1, 0, 0)).inDays + 1;
+    _counter = dayOfTheYear;
     _load();
   }
 
   void _load() async {
     try {
-      _lessons = await _graphQLService.getLessons(lessonCollectionId: '64947fed85956572222a0b76');
-      final dayOfTheYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1, 0, 0)).inDays + 1;
-      _counter = (_lessons.length >= dayOfTheYear) ? dayOfTheYear : 1;
+      _lesson = await _graphQLService.getLessonByNumber(lessonCollectionId: widget.lessonCollection.id, lessonNumber: _counter);
       _day = setDayString();
-      _selectedLesson = _lessons.elementAt(_counter - 1);
     } catch (error) {
-      _lessons = List.empty();
+      if (_counter == 1) {
+        _lesson = LessonModel(title: ' ', lessonNumber: 0, content: List.empty());
+      } else {
+        _counter = 1;
+        _load();
+      }
     }
-    setState(() {});
+    setState(() {
+      _selectedLesson = _lesson;
+    });
   }
 
   void _incrementCounter() {
-    if (_lessons.isEmpty) {
-      _load();
-    } else {
-      setState(() {
-        _counter++;
-        if (_counter > _lessons.length) _counter = 1;
-        _selectedLesson = _lessons.elementAt(_counter - 1);
-        _day = setDayString();
-      });
-    }
+    _counter++;
+    _load();
   }
 
   String setDayString() {
@@ -124,6 +122,36 @@ class _LessonPageState extends State<LessonPage> {
             ],
           )
         );
+      } else if (contentObject is LessonUnorderedList) {
+        if (contentObject.intro != null) {
+          contentObjects.add(
+            Container(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                contentObject.intro ?? '',
+                textAlign: TextAlign.justify,
+              ),
+            )
+          );
+        }
+        for (var listElement in contentObject.list) {
+          //
+        }
+      } else if (contentObject is LessonOrderedList) {
+        if (contentObject.intro != null) {
+          contentObjects.add(
+            Container(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                contentObject.intro ?? '',
+                textAlign: TextAlign.justify,
+              ),
+            )
+          );
+        }
+        for (var listElement in contentObject.list) {
+          //
+        }
       }
     }
     return contentObjects;
@@ -134,9 +162,9 @@ class _LessonPageState extends State<LessonPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: const Text('Daily Lesson'),
       ),
-      body: (_lessons.isEmpty)
+      body: (_lesson.lessonNumber == 0)
         ? const Center(
             child: CircularProgressIndicator(),
           )

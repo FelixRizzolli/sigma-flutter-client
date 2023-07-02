@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:sigma_flutter_client/graphql_config.dart';
 import 'package:sigma_flutter_client/models/lesson_model.dart';
@@ -6,30 +8,43 @@ class GraphQLService {
   static GraphQLConfig graphqlConfig = GraphQLConfig();
   GraphQLClient client = graphqlConfig.graphqlClient();
   
-  Future<List<LessonModel>> getLessons({
-    required String lessonCollectionId
+  Future<LessonModel> getLessonByNumber({
+    required String lessonCollectionId,
+    required int lessonNumber
   }) async {
     try {
       QueryResult result = await client.query(
         QueryOptions(
           fetchPolicy: FetchPolicy.noCache,
           document: gql("""
-            query GetLessons(\$lessonCollectionId: ID!) {
-              getLessons(lessonCollectionId: \$lessonCollectionId) {
+            query GetLessons(\$lessonCollectionId: ID!, \$lessonNumber: Int) {
+              getLessonByNumber(lessonCollectionId: \$lessonCollectionId, lessonNumber: \$lessonNumber) {
+                id
                 title
+                lessonNumber
                 content {
-                  _type
-                  quote
-                  source
-                  author
-                  paragraph
+                  ... on LessonQuote {
+                    type
+                    quote
+                    author
+                    source
+                  }
+                  ... on LessonList {
+                    type
+                    intro
+                    list
+                  }
+                  ... on LessonParagraph {
+                    type
+                    paragraph
+                  }
                 }
-                number
               }
             }
           """),
           variables: {
-            'lessonCollectionId': lessonCollectionId
+            'lessonCollectionId': lessonCollectionId,
+            'lessonNumber': lessonNumber,
           }
         ),
       );
@@ -37,15 +52,13 @@ class GraphQLService {
       if (result.hasException) {
         throw Exception(result.exception);
       } else {
-        List? res = result.data?['getLessons'];
+        Map res = result.data?['getLessonByNumber'];
 
-        if (res == null || res.isEmpty) {
-          return [];
+        if (res.isEmpty) {
+          return LessonModel(title: ' ', lessonNumber: 0, content: []);
         }
         
-        return res.map(
-          (lesson) => LessonModel.fromMap(map: lesson)
-        ).toList();
+        return LessonModel.fromMap(map: res);
       }
     } catch (error) {
       throw Exception(error);
@@ -60,6 +73,7 @@ class GraphQLService {
           document: gql("""
             query GetLessonCollections {
               getLessonCollections {
+                id,
                 name,
                 frequency
               }
@@ -71,15 +85,16 @@ class GraphQLService {
       if (result.hasException) {
         throw Exception(result.exception);
       } else {
-        List? res = result.data?['getLessonCollections'];
+        List? resultList = result.data?['getLessonCollections'];
 
-        if (res == null || res.isEmpty) {
+        if (resultList == null || resultList.isEmpty) {
           return [];
         }
-        
-        return res.map(
-          (lesson) => LessonCollectionModel.fromMap(map: lesson)
-        ).toList();
+        List<LessonCollectionModel> lessonCollections = [];
+        for (var lessonCollectionDocument in resultList) {
+          lessonCollections.add(LessonCollectionModel.fromMap(map: lessonCollectionDocument));
+        }
+        return lessonCollections;
       }
     } catch (error) {
       throw Exception(error);

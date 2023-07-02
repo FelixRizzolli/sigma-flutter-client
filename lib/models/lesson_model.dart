@@ -1,14 +1,17 @@
 class LessonCollectionModel {
+  String id;
   String name;
   String frequency;
 
   LessonCollectionModel({
+    required this.id,
     required this.name,
     required this.frequency
   });
 
   static LessonCollectionModel fromMap({ required Map map }) {
     return LessonCollectionModel(
+      id: map['id'],
       name: map['name'], 
       frequency: map['frequency']
     );
@@ -16,19 +19,19 @@ class LessonCollectionModel {
 }
 class LessonModel {
   String title;
-  int number;
+  int lessonNumber;
   List content;
 
   LessonModel({
     required this.title, 
-    required this.number,
+    required this.lessonNumber,
     required this.content
   });
 
   static LessonModel fromMap({ required Map map }) {
     final lessonModel = LessonModel(
       title: map['title'], 
-      number: map['number'],
+      lessonNumber: map['lessonNumber'],
       content: List.empty()
     );
     List rawContent = map['content'];
@@ -38,7 +41,7 @@ class LessonModel {
 
   static LessonContentObject lessonContentObjectFromMap({ required Map map }) {
     LessonContentObject contentObject = LessonParagraph(paragraph: "");
-    switch (map['_type']) {
+    switch (map['type']) {
       case "QUOTE": {
         contentObject = LessonQuote(
           quote: map['quote'],
@@ -49,6 +52,20 @@ class LessonModel {
       case "PARAGRAPH": {
         contentObject = LessonParagraph(
           paragraph: map['paragraph']
+        );
+      }
+      case "ORDEREDLIST": {
+        List<String> list = map['list'];
+        contentObject = LessonUnorderedList(
+          intro: map['intro'],
+          list: list
+        );
+      }
+      case "UNORDEREDLIST": {
+        List<String> list = map['list'];
+        contentObject = LessonOrderedList(
+          intro: map['intro'],
+          list: list
         );
       }
       default: contentObject = LessonParagraph(paragraph: "");
@@ -83,5 +100,29 @@ class LessonQuote implements LessonContentObject {
     required this.quote,
     this.source,
     this.author
+  });
+}
+class LessonUnorderedList implements LessonContentObject {
+  @override
+  final String type;
+  final String? intro;
+  final List<String> list;
+
+  LessonUnorderedList({
+    this.type = "UNORDEREDLIST",
+    required this.list,
+    this.intro
+  });
+}
+class LessonOrderedList implements LessonContentObject {
+  @override
+  final String type;
+  final String? intro;
+  final List<String> list;
+
+  LessonOrderedList({
+    this.type = "ORDEREDLIST",
+    required this.list,
+    this.intro
   });
 }
